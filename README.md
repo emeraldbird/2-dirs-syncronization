@@ -1,4 +1,4 @@
-# Задача 2 (Linux version)
+# Задача 2 (для Linux)
 Junior Developer in QA test task №2
 
 ## Задание
