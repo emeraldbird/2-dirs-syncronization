@@ -22,12 +22,11 @@ import signal
 
 class Syncronizer():
     """
-    One-way syncronization of two folders
+    One-way syncronization of two directories
 
     Example:
-        sync = Syncronizer('./master_dir/', './slave_dir/', interval=1.5, log_file='./sync.log')
+        sync = Syncronizer('./master/', './slave/', interval=1.5, log_file='./sync.log')
         sync.run()
-
     """
     def __init__(self,
                  master: str,
@@ -45,7 +44,7 @@ class Syncronizer():
 
     def run(self) -> None:
         """
-        Run syncronization
+        Run sync loop 
         """
         self.running = True
 
@@ -66,7 +65,14 @@ class Syncronizer():
 
     def syncronize(self) -> None:
         """
-        Syncronize two folders once
+        Syncronize two folders once:
+        
+        SCENARIOS                               ACTION
+        1. file/dir was removed from master/    remove it from slave/
+        2. file/dir was created in master/      copy file/dir from master/ to slave/
+        3. file/dir was changed in master/      change file/dir metadata in slave/ 
+        4. file was modified                    replace old file in slave/
+        
         """
         self.remove()
         self.update()
@@ -74,7 +80,7 @@ class Syncronizer():
 
     def remove(self) -> None:
         """
-        Remove outdated files from slave directory
+        Remove all old files/dirs from slave/
         """
         for path_in_slave, _, type_ in self.__get_unique(self.slave, self.master):
             if type_ == 'dir':
@@ -89,9 +95,10 @@ class Syncronizer():
 
     def update(self) -> None:
         """
-        Replace all files in slave directory whose type/size/modification time has changed
-        Update stat, UID, GID
+        1. Replace all files in slave/ directory whose type/size/modification time has changed
+        2. Update all stat, UID, GID information that has changed
         """
+        
         def __sync_stats(path_in_master, path_in_slave):
             stat_in_master = os.stat(path_in_master)
             stat_in_slave = os.stat(path_in_slave)
@@ -138,7 +145,7 @@ class Syncronizer():
 
     def distribute(self) -> None:
         """
-        Copy new files from master to slave
+        Copy all new files from master/ to slave/
         """
         for path_in_master, path_in_slave, type_ in self.__get_unique(self.master, self.slave):
             try:
@@ -156,6 +163,9 @@ class Syncronizer():
                 self.logger.error('copy failed: %s', path_in_slave)
 
     def __m_s_paths(self, dirpath, name) -> Tuple[str, str]:
+        """
+        Return 2 formed file paths: 1. in master/ 2. in slave/
+        """
         relative_path = os.path.relpath(
             path=os.path.join(dirpath, name),
             start=self.slave)
@@ -166,8 +176,13 @@ class Syncronizer():
 
     def __get_unique(self, original_dir: str, comparison_dir: str) -> Tuple[str, str, str]:
         """
-        Generator returns relative path of file in original_dir that absent in comparison_dir.
-        Also we could use filecmp.dircmp instead, but there is an issue to handle subdirectories.
+        Generator returns tuple that contains:
+            1. path to file/dir that exists in original_dir;
+            2. path to similar file/dir that absent in comparison_dir;
+            3. string 'file' or 'dir' 
+            
+        We could use filecmp.dircmp instead of os.walk to improve efficiency,
+        but I decided to make the method less complicated.
         """
         for dirpath, directories, filenames in os.walk(original_dir):
 
@@ -198,9 +213,10 @@ class Syncronizer():
 
     def __verify(self, path_: str) -> str:
         """
-        If ok - return str, if not - raise Exception
+        Check if path_ is inside master/ or slave/
+        
+        It should be used before any removal.
         """
-        # check if path_ is inside master or inside slave
         abspath_ = os.path.abspath(path_)
 
         if os.path.commonpath((self.master, abspath_)) == self.master \
@@ -212,6 +228,11 @@ class Syncronizer():
             raise Exception(f'file {abspath_} not in {self.master} or {self.slave}')
 
     def __setup_logger(self, level: int, log_file: str = ''):
+        """
+        Setup logger, that prints messages to:
+            1. stdout (by default)
+            2. log file (if log_file specified)
+        """
         self.logger = logging.getLogger(f'{sys.argv[0]} PID {os.getpid()}')
         self.logger.setLevel(level)
 
@@ -236,7 +257,10 @@ class Syncronizer():
 
 def main():
     """
-    main
+    1. Setup argument parser
+    2. Create and run syncronizer
+    3. Wait untill Ctrl+C pressed
+    
     """
     parser = ArgumentParser()
     parser = ArgumentParser(
