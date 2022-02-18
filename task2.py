@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
 
-The script performs a one-way synchronization of two folders
+The script performs a one-way synchronization of two directories
 
 """
 
