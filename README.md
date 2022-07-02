@@ -1,27 +1,27 @@
 
-## Описание
-Программа реагирует на:
-- удаление
-- создание
-- модификацию содержимого
-- изменение мета-данных
+## Description
+Synchronization includes operations:
+- deletion
+- creation
+- modification
+- change of file metadata
 
-## Использование
+## Usage
 
-Запуск синхронизации
+Run synchronization
 ```bash
 $ sudo ./sync.py [--interval INTERVAL] [--log-file LOG_FILE] master slave
 ```
 
-Остановка синхронизации
+Stop syncronization
 `Ctrl`+`C`
 
 
-#### Пример
+#### Example
 ```bash
 user@ubuntu:~/sync$ sudo ./sync.py -i 1.5 --log-file sync.log /etc/ /tmp/etc-copy/
 ```
-Фрагменты лога:
+Log file snippet example:
 ```bash
 2022-02-18 02:46:25 : ./sync.py PID 191 : INFO : Start syncronization /etc ----> /tmp/etc-copy
 2022-02-18 02:46:25 : ./sync.py PID 191 : INFO : copied: dir /tmp/etc-copy/alternatives
