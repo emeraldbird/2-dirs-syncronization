@@ -18,8 +18,6 @@ import logging
 import signal
 
 
-#logging.basicConfig(level=logging.INFO)
-
 class Syncronizer():
     """
     One-way syncronization of two directories
