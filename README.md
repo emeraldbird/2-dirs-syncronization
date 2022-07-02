@@ -1,5 +1,7 @@
 
 ## Description
+The program synchronizes the contents of the destination folder (slave) with the contents of the source folder (master).
+
 Synchronization includes operations:
 - deletion
 - creation
